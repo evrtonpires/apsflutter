@@ -51,7 +51,9 @@ class StatusTile extends StatelessWidget {
                           content: Container(
                             height: 40,
                             child: Text(
-                                "${status.entities.urls.length > 0 ? status.entities.urls[index].url : "Sem URL de Post"}"),
+                                "${status.entities.urls.length > 0
+                                    ? status.entities.urls[0].url
+                                    : "Sem URL de Post"}"),
                           ),
                         );
                       });
