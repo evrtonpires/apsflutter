@@ -16,7 +16,7 @@ class TwitterBloc extends BlocBase {
   List<Statuses> listStatuses;
 
   final BehaviorSubject<List<Statuses>> _statusesController =
-      BehaviorSubject<List<Statuses>>();
+  BehaviorSubject<List<Statuses>>();
 
   Stream<List<Statuses>> get outStatuses => _statusesController.stream;
 
@@ -42,15 +42,14 @@ class TwitterBloc extends BlocBase {
       _statusesController.sink.add([]);
       twitter = await api.search(search);
       listStatuses = twitter.statuses;
+
+      listStatuses.forEach((post) {
+        if (post.text.isNotEmpty) {
+          dio.post("/posts", data: {"post": post.text});
+        }
+      });
     }
-    listStatuses.forEach((post) {
-      if (!post.text.contains("...") &&
-          listStatuses.length > 0 &&
-          post.text != null &&
-          post.text.isNotEmpty) {
-        dio.post("/posts", data: {"post": post.text});
-      }
-    });
+
     _statusesController.sink.add(listStatuses);
   }
 
@@ -72,7 +71,7 @@ class TwitterBloc extends BlocBase {
                 Center(
                   child: Text("PROBLEMA DE CONEXÃO",
                       style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                 ),
                 Center(
                   child: Text(
@@ -83,12 +82,10 @@ class TwitterBloc extends BlocBase {
               ],
             ),
           ),
-//             btnOkColor: btnOkColor,
           btnOkOnPress: () {
             verificarConexao(context);
           }).show();
       return false;
-//      verificarConexao();
     }
   }
 
@@ -96,5 +93,6 @@ class TwitterBloc extends BlocBase {
   void dispose() {
     _statusesController.close();
     _searchController.close();
+    super.dispose();
   }
 }

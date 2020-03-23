@@ -34,7 +34,7 @@ class Api {
           "q": "$search",
           "result_type": "mixed",
 //          "lang": "pt",
-          "count": "100",
+          "count": "10",
         },
         timeout: 30);
 
@@ -45,7 +45,7 @@ class Api {
     // Print off the response
   }
 
-  Twitter decode(http.Response res) {
+  decode(http.Response res) {
     Twitter twitter = Twitter.padrao();
     if (res.statusCode == 200) {
       var tweets = json.decode(res.body);
