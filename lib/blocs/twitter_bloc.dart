@@ -1,5 +1,7 @@
 import 'package:aps_5p/api_dados/api.dart';
 import 'package:aps_5p/models/status_es/status_es_model.dart';
+import 'package:aps_5p/models/tendencia/tendencia_model.dart';
+import 'package:aps_5p/models/trends/trends_model.dart';
 import 'package:aps_5p/models/twitter/twitter_model.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
@@ -28,14 +30,29 @@ class TwitterBloc extends BlocBase {
 
   String get valorSearch => _searchController.value;
 
+  final BehaviorSubject<Tendencia> _trendsController =
+  BehaviorSubject<Tendencia>();
+
+  Stream<Tendencia> get outTendencia => _trendsController.stream;
+
   TwitterBloc() {
     api = Api();
     dio = Dio();
+    tendencia();
     dio.options.baseUrl = BASE_URL;
     dio.options.receiveTimeout = 60000;
     _searchController.stream.listen(_search);
   }
 
+  void tendencia() async {
+    Tendencia tendencia = Tendencia.padrao();
+//    _trendsController.sink.add(tendencia);
+    tendencia = await api.trends("Brazil");
+
+    if (tendencia != null) {
+      _trendsController.sink.add(tendencia);
+    }
+  }
   void _search(String search) async {
     Twitter twitter = Twitter.padrao();
     if (search != null && search.isNotEmpty) {
@@ -49,7 +66,6 @@ class TwitterBloc extends BlocBase {
         }
       });
     }
-
     _statusesController.sink.add(listStatuses);
   }
 
@@ -93,6 +109,7 @@ class TwitterBloc extends BlocBase {
   void dispose() {
     _statusesController.close();
     _searchController.close();
+    _trendsController.close();
     super.dispose();
   }
 }

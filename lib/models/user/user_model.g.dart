@@ -35,7 +35,7 @@ User _$UserFromJson(Map<String, dynamic> json) {
     profileBackgroundImageUrlHttps:
         json['profileBackgroundImageUrlHttps'] as String,
     profileBackgroundTile: json['profileBackgroundTile'] as bool,
-    profileImageUrl: json['profileImageUrl'] as String,
+    profileImageUrl: json['profile_image_url'] as String,
     profileImageUrlHttps: json['profileImageUrlHttps'] as String,
     profileBannerUrl: json['profileBannerUrl'] as String,
     profileLinkColor: json['profileLinkColor'] as String,

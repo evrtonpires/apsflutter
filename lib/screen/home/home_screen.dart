@@ -2,8 +2,10 @@ import 'package:aps_5p/api_dados/api.dart';
 import 'package:aps_5p/blocs/twitter_bloc.dart';
 import 'package:aps_5p/drawer/custom_drawer.dart';
 import 'package:aps_5p/models/status_es/status_es_model.dart';
+import 'package:aps_5p/models/tendencia/tendencia_model.dart';
 import 'package:aps_5p/screen/home/widgets/search_dialog.dart';
 import 'package:aps_5p/screen/home/widgets/status_tile.dart';
+import 'package:aps_5p/screen/home/widgets/tendencia_widget.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
     blocTwitter.verificarConexao(context);
     super.didChangeDependencies();
   }
+
+  final PageController controller = PageController(viewportFraction: 0.9);
 
   @override
   Widget build(BuildContext context) {
@@ -84,52 +88,42 @@ class _HomeScreenState extends State<HomeScreen> {
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
             case ConnectionState.done:
-              return Stack(
-                children: <Widget>[
-                  Center(
-                      child: Container(
-                          height: 100,
-                          width: 100,
-                          child: FlareActor("assets/passarotwi.flr",
-                              alignment: Alignment.center,
-                              fit: BoxFit.contain,
-                              animation: "voar"))),
-                  Align(
-                    alignment: Alignment(0.0, 0.3),
-                    child: Text(
-                      "REALIZE SUA PESQUISA",
-                      style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  )
-                ],
-              );
+              return StreamBuilder<Tendencia>(
+                  stream: blocTwitter.outTendencia,
+                  builder: (context, snapshotTendencia) {
+                    switch (snapshotTendencia.connectionState) {
+                      case ConnectionState.waiting:
+                      case ConnectionState.done:
+                        return Center(child: CircularProgressIndicator());
+                      case ConnectionState.active:
+                        return RefreshIndicator(
+                            child: TendenciaWidget(snapshotTendencia.data),
+                            onRefresh: () async {
+                              blocTwitter.tendencia();
+                            });
+                      default:
+                        return Center(child: Text("Error"));
+                    }
+                  });
             case ConnectionState.active:
               if (blocTwitter.valorSearch.isEmpty) {
-                return Stack(
-                  children: <Widget>[
-                    Center(
-                        child: Container(
-                            height: 100,
-                            width: 100,
-                            child: FlareActor("assets/passarotwi.flr",
-                                alignment: Alignment.center,
-                                fit: BoxFit.contain,
-                                animation: "voar"))),
-                    Align(
-                      alignment: Alignment(0.0, 0.2),
-                      child: Text(
-                        "Realize sua Pesquisa",
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    )
-                  ],
-                );
+                return StreamBuilder<Tendencia>(
+                    stream: blocTwitter.outTendencia,
+                    builder: (context, snapshotTendencia) {
+                      switch (snapshotTendencia.connectionState) {
+                        case ConnectionState.waiting:
+                        case ConnectionState.done:
+                          return Center(child: CircularProgressIndicator());
+                        case ConnectionState.active:
+                          return RefreshIndicator(
+                              child: TendenciaWidget(snapshotTendencia.data),
+                              onRefresh: () async {
+                                blocTwitter.tendencia();
+                              });
+                        default:
+                          return Center(child: Text("Error"));
+                      }
+                    });
               }
               if (snapshot.data.length == 0) {
                 return Center(
@@ -141,15 +135,28 @@ class _HomeScreenState extends State<HomeScreen> {
                             fit: BoxFit.contain,
                             animation: "loading")));
               }
-              return ListView.builder(
-                itemCount: snapshot.data.length,
-                itemBuilder: (context, index) {
-                  return StatusTile(
-                      status: snapshot.data[index],
-                      contextHome: context,
-                      index: index);
-                },
-              );
+              return SingleChildScrollView(
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        height: MediaQuery
+                            .of(context)
+                            .size
+                            .height * 0.56,
+                        child: PageView.builder(
+                          controller: controller,
+                          itemCount: snapshot.data.length,
+                          itemBuilder: (context, int currentIndex) {
+                            return StatusTile(
+                              contextHome: context,
+                              status: snapshot.data[currentIndex],
+                              index: currentIndex,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ));
             default:
               return Center(child: Text("Error"));
           }

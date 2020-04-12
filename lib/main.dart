@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         Bloc((i) => TwitterBloc()),
       ],
       child: MaterialApp(
-          title: 'Flutter Demo',
+          title: 'Twitter',
           theme: myTheme,
           debugShowCheckedModeBanner: false,
           home: HomeScreen()),
