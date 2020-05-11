@@ -1,12 +1,14 @@
 import 'package:aps_5p/api_dados/api.dart';
 import 'package:aps_5p/blocs/twitter_bloc.dart';
 import 'package:aps_5p/drawer/custom_drawer.dart';
+import 'package:aps_5p/models/sentiment/sentiment_model.dart';
 import 'package:aps_5p/models/status_es/status_es_model.dart';
 import 'package:aps_5p/models/tendencia/tendencia_model.dart';
 import 'package:aps_5p/screen/home/widgets/search_dialog.dart';
 import 'package:aps_5p/screen/home/widgets/status_tile.dart';
 import 'package:aps_5p/screen/home/widgets/tendencia_widget.dart';
 import 'package:bloc_pattern/bloc_pattern.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
 
@@ -164,4 +166,5 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 }

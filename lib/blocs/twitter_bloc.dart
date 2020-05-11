@@ -1,4 +1,5 @@
 import 'package:aps_5p/api_dados/api.dart';
+import 'package:aps_5p/models/sentiment/sentiment_model.dart';
 import 'package:aps_5p/models/status_es/status_es_model.dart';
 import 'package:aps_5p/models/tendencia/tendencia_model.dart';
 import 'package:aps_5p/models/trends/trends_model.dart';
@@ -16,6 +17,7 @@ class TwitterBloc extends BlocBase {
   Api api;
   Dio dio;
   List<Statuses> listStatuses;
+  List<Sentiment> listSentiments;
 
   final BehaviorSubject<List<Statuses>> _statusesController =
   BehaviorSubject<List<Statuses>>();
@@ -28,7 +30,16 @@ class TwitterBloc extends BlocBase {
 
   Sink<String> get inSearch => _searchController.sink;
 
+  final BehaviorSubject<Sentiment> _sentimentsController = BehaviorSubject<
+      Sentiment>();
+
+  Stream<Sentiment> get outSentiments => _sentimentsController.stream;
+
+  Sink<Sentiment> get inSentiments => _sentimentsController.sink;
+
   String get valorSearch => _searchController.value;
+
+  Sentiment get getListSentiment => _sentimentsController.value;
 
   final BehaviorSubject<Tendencia> _trendsController =
   BehaviorSubject<Tendencia>();
@@ -57,12 +68,14 @@ class TwitterBloc extends BlocBase {
     Twitter twitter = Twitter.padrao();
     if (search != null && search.isNotEmpty) {
       _statusesController.sink.add([]);
+
       twitter = await api.search(search);
       listStatuses = twitter.statuses;
 
       listStatuses.forEach((post) {
         if (post.text.isNotEmpty) {
-          dio.post("/posts", data: {"post": post.text});
+          var postCortado = post.text.split('https');
+          dio.post("/posts", data: {"post": postCortado[0]});
         }
       });
     }
@@ -110,6 +123,7 @@ class TwitterBloc extends BlocBase {
     _statusesController.close();
     _searchController.close();
     _trendsController.close();
+    _sentimentsController.close();
     super.dispose();
   }
 }

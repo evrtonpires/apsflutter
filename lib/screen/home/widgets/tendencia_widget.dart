@@ -81,7 +81,8 @@ class TendenciaWidget extends StatelessWidget {
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold),
                                   ),
-                                  Text(tendencia.trends[index].query),
+                                  Flexible(child: Text(
+                                      tendencia.trends[index].query))
                                 ]),
                                 SizedBox(height: 10),
                                 Row(children: <Widget>[

@@ -1,14 +1,26 @@
 import 'dart:convert';
+import 'package:aps_5p/blocs/twitter_bloc.dart';
 import 'package:aps_5p/models/location/location_model.dart';
 import 'package:aps_5p/models/search_meta_data/search_meta_data_model.dart';
+import 'package:aps_5p/models/sentiment/sentiment_model.dart';
 import 'package:aps_5p/models/status_es/status_es_model.dart';
 import 'package:aps_5p/models/tendencia/tendencia_model.dart';
 import 'package:aps_5p/models/trends/trends_model.dart';
+import 'package:bloc_pattern/bloc_pattern.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:aps_5p/models/twitter/twitter_model.dart';
 import 'package:twitter_api/twitter_api.dart';
+import 'package:dio/dio.dart';
 
 class Api {
+
+  Dio dio;
+
+  Api() {
+    dio = Dio();
+    dio.options.baseUrl = "https://api.gotit.ai";
+  }
 
   // Setting placeholder api keys
   String consumerApiKey = "RULaduPYdprfBBjuZh0m1QCRO";
@@ -26,7 +38,7 @@ class Api {
 
     // Make the request to twitter
     Future<dynamic> twitterRequest = _twitterOauth.getTwitterRequest(
-        // Http Method
+      // Http Method
         "GET",
         // Endpoint you are trying to reach
         "search/tweets.json",
@@ -70,6 +82,23 @@ class Api {
 
     return decodeTrends(res);
     // Print off the response
+  }
+
+  TwitterBloc twitterBloc;
+
+  Future<Sentiment> emocao({@required String post}) async {
+    final authorization = "Basic MTU1Ni1DbllwVkNvQzpMWm5iWFZVMXFTNDB0TnkrR2p3Tzc5K3NBOFJMMlJKN0duczM=";
+
+    var res = await dio.post("/NLU/v1.4/Analyze", options: Options(headers: {
+      "Content-Type": "application/json",
+      "Authorization": authorization
+    }), data: {"T": post, "SL": "PtBr", "S": "True"});
+
+    if (res.statusCode == 200) {
+      Sentiment sentiment = Sentiment.padrao();
+      sentiment = Sentiment.fromJson(res.data["sentiment"]);
+      return sentiment;
+    }
   }
 
   decodeSearch(http.Response res) {

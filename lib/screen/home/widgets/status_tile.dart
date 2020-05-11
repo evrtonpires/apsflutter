@@ -1,19 +1,55 @@
+import 'package:aps_5p/api_dados/api.dart';
+import 'package:aps_5p/blocs/twitter_bloc.dart';
+import 'package:aps_5p/models/sentiment/sentiment_model.dart';
 import 'package:aps_5p/models/status_es/status_es_model.dart';
 import 'package:aps_5p/screen/home/home_screen.dart';
-import 'package:flare_flutter/flare_actor.dart';
+import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class StatusTile extends StatelessWidget {
+class StatusTile extends StatefulWidget {
   final Statuses status;
   final BuildContext contextHome;
   final int index;
 
-  StatusTile(
-      {@required this.status,
-      @required this.contextHome,
-      @required this.index});
+  StatusTile({@required this.status,
+    @required this.contextHome,
+    @required this.index});
+
+  @override
+  _StatusTileState createState() =>
+      _StatusTileState(contextHome: contextHome, index: index, status: status);
+}
+
+class _StatusTileState extends State<StatusTile> {
+  final Statuses status;
+  final BuildContext contextHome;
+  final int index;
+
+  _StatusTileState({@required this.status,
+    @required this.contextHome,
+    @required this.index});
+
+  final TwitterBloc blocTwitter =
+  BlocProvider.tag('twitter').getBloc<TwitterBloc>();
+
+  List<Sentiment> listSentiment = [];
+  Api api;
+  var postCortado;
+
+  @override
+  void initState() {
+    super.initState();
+    api = Api();
+    postCortado = status.text.split('https');
+  }
+
+  sentimentos(post) async {
+    Sentiment sent = Sentiment();
+    sent = await api.emocao(post: post);
+    blocTwitter.inSentiments.add(sent);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +93,10 @@ class StatusTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
                 RaisedButton(
-                  child:
-                  Text("URL Post", style: TextStyle(color: Colors.white)),
+                  child: Text("URL Post",
+                      style: TextStyle(color: Colors.white)),
                   onPressed: () {
+                    sentimentos(status.text);
                     showDialog(
                         context: contextHome,
                         builder: (contextHome) {
@@ -74,23 +111,62 @@ class StatusTile extends StatelessWidget {
                                     color: Colors.white,
                                     fontStyle: FontStyle.italic)),
                             content: Container(
-                              height: 40,
-                              child: status.entities.urls.length > 0
-                                  ? GestureDetector(
-                                onTap: () {
-                                  _lauchInBrowser(
-                                      status.entities.urls[0].url);
-                                },
-                                child: Text(
-                                  "${status.entities.urls[0].url}",
-                                  style: TextStyle(
-                                      decoration:
-                                      TextDecoration.underline,
-                                      color: Colors.blue),
-                                ),
-                              )
-                                  : Text("Sem URL de Post"),
-                            ),
+                                height: 200,
+                                child: Column(
+                                  children: <Widget>[
+                                    status.entities.urls.length > 0
+                                        ? GestureDetector(
+                                      onTap: () {
+                                        _lauchInBrowser(status
+                                            .entities.urls[0].url);
+                                      },
+                                      child: Text(
+                                        "${status.entities.urls[0].url}",
+                                        style: TextStyle(
+                                            decoration: TextDecoration
+                                                .underline,
+                                            color: Colors.white),
+                                      ),
+                                    )
+                                        : Text("Sem URL de Post"),
+                                    StreamBuilder<Sentiment>(
+                                      stream: blocTwitter.outSentiments,
+                                      builder: (context, snapshot) {
+                                        return snapshot.data != null
+                                            ? Column(
+                                          children: <Widget>[
+                                            Icon(
+                                              snapshot.data.label ==
+                                                  "POSITIVE"
+                                                  ? Icons.done_outline
+                                                  : snapshot.data
+                                                  .label ==
+                                                  "NEGATIVE"
+                                                  ? Icons.clear
+                                                  : Icons
+                                                  .do_not_disturb_on,
+                                              color: snapshot.data
+                                                  .label ==
+                                                  "POSITIVE"
+                                                  ? Colors.green
+                                                  : snapshot.data
+                                                  .label ==
+                                                  "NEGATIVE"
+                                                  ? Colors.red
+                                                  : Colors.orange,
+                                              size: 100,
+                                            ),
+                                            Text(
+                                                "${snapshot.data.score}"),
+                                            Text(
+                                                "${snapshot.data.label}")
+                                          ],
+                                        )
+                                            : SizedBox();
+                                      },
+                                    ),
+                                  ],
+                                )),
                           );
                         });
                   },
@@ -120,22 +196,27 @@ class StatusTile extends StatelessWidget {
                                 children: <Widget>[
                                   Row(children: <Widget>[
                                     Text("Nome: ",
-                                        style: TextStyle(color: Colors.white)),
-                                    Flexible(child: Text("${status.user.name}"))
+                                        style:
+                                        TextStyle(color: Colors.white)),
+                                    Flexible(
+                                        child: Text("${status.user.name}"))
                                   ]),
                                   Row(children: <Widget>[
                                     Text("Nome de Tela: ",
-                                        style: TextStyle(color: Colors.white)),
+                                        style:
+                                        TextStyle(color: Colors.white)),
                                     Flexible(
-                                        child:
-                                        Text("${status.user.screenName}"))
+                                        child: Text(
+                                            "${status.user.screenName}"))
                                   ]),
                                   SizedBox(height: 20),
                                   Row(children: <Widget>[
                                     Text("Cidade | País: ",
-                                        style: TextStyle(color: Colors.white)),
+                                        style:
+                                        TextStyle(color: Colors.white)),
                                     Flexible(
-                                        child: Text("${status.user.location}"))
+                                        child:
+                                        Text("${status.user.location}"))
                                   ]),
                                 ],
                               ),
@@ -168,7 +249,7 @@ class StatusTile extends StatelessWidget {
                           ),
                           Center(
                               child: Text(
-                                "${status.text}",
+                                "${postCortado[0]}",
                                 textAlign: TextAlign.center,
                               )),
                           Text(
@@ -188,6 +269,7 @@ class StatusTile extends StatelessWidget {
                     ))
               ],
             ),
+//    sentimentos(postCortado[0]);
           ],
         ));
   }
