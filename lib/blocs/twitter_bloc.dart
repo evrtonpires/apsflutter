@@ -37,6 +37,19 @@ class TwitterBloc extends BlocBase {
 
   Sink<Sentiment> get inSentiments => _sentimentsController.sink;
 
+  List<Statuses> get getStatuses => _statusesController.value;
+
+  final BehaviorSubject<
+      List<Sentiment>> _sentimentsListController = BehaviorSubject<
+      List<Sentiment>>();
+
+  Stream<List<Sentiment>> get outListSentiments =>
+      _sentimentsListController.stream;
+
+  Sink<List<Sentiment>> get inListSentiments => _sentimentsListController.sink;
+
+  List<Sentiment> get getListSentiments => _sentimentsListController.value;
+
   String get valorSearch => _searchController.value;
 
   Sentiment get getListSentiment => _sentimentsController.value;
@@ -124,6 +137,7 @@ class TwitterBloc extends BlocBase {
     _searchController.close();
     _trendsController.close();
     _sentimentsController.close();
+    _sentimentsListController.close();
     super.dispose();
   }
 }

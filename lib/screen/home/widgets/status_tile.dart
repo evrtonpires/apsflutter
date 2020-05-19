@@ -35,9 +35,9 @@ class _StatusTileState extends State<StatusTile> {
   BlocProvider.tag('twitter').getBloc<TwitterBloc>();
 
   List<Sentiment> listSentiment = [];
-  Api api;
-  var postCortado;
 
+  var postCortado;
+  Api api;
   @override
   void initState() {
     super.initState();
@@ -61,8 +61,8 @@ class _StatusTileState extends State<StatusTile> {
             Row(
               children: <Widget>[
                 Container(
-                  height: 120,
-                  width: 100,
+                  height: 108,
+                  width: 80,
                   decoration: BoxDecoration(
                       image: DecorationImage(
                           image: NetworkImage(status.user.profileImageUrl),
@@ -84,7 +84,10 @@ class _StatusTileState extends State<StatusTile> {
                           "Descrição",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        Text("${status.user.description}"),
+                        status.user.description.length >= 80
+                            ?
+                        Text("${status.user.description.substring(0, 80)}")
+                            : Text("${status.user.description}"),
                       ],
                     ))
               ],
@@ -111,7 +114,7 @@ class _StatusTileState extends State<StatusTile> {
                                     color: Colors.white,
                                     fontStyle: FontStyle.italic)),
                             content: Container(
-                                height: 200,
+                                height: 210,
                                 child: Column(
                                   children: <Widget>[
                                     status.entities.urls.length > 0
@@ -269,7 +272,7 @@ class _StatusTileState extends State<StatusTile> {
                     ))
               ],
             ),
-//    sentimentos(postCortado[0]);
+
           ],
         ));
   }
